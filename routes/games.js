@@ -6,9 +6,9 @@ const router = express.Router();
 router.get('/recentGames', async (req, res, next) => {
   try {
     const { steamid } = req.query;
-    const RecentGames = await axios.get(`https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&count=5`);
+    const { data } = await axios.get(`https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&count=5`);
 
-    res.json(RecentGames.data.response.games);
+    res.json(data.response.games);
   } catch (error) {
     next(error);
   }
@@ -17,9 +17,9 @@ router.get('/recentGames', async (req, res, next) => {
 router.get('/ownedGames', async (req, res, next) => {
   try {
     const { steamid } = req.query;
-    const games = await axios.get(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&include_appinfo=true`);
+    const { data } = await axios.get(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&include_appinfo=true`);
 
-    res.json(games.data.response);
+    res.json(data.response);
   } catch (error) {
     next(error);
   }
@@ -40,7 +40,6 @@ router.get('/game', async (req, res, next) => {
     // https://partner.steamgames.com/doc/webapi/ISteamNews
     // appid, maxlength(0 == all), enddate, count, feeds
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });

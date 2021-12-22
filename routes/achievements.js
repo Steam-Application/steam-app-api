@@ -8,6 +8,7 @@ const router = express.Router();
 router.get('/getAchievements', async (req, res, next) => {
   try {
     const { gameid, steamid } = req.query;
+    
     const userStats = await axios.get(`https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&appid=${gameid}&l=english`);
     const globalStats = await axios.get(`https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?gameid=${gameid}`);
     const gameData = await axios.get(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${process.env.STEAM_KEY}&appid=${gameid}&l=english`);
@@ -43,7 +44,11 @@ router.get('/getAchievements', async (req, res, next) => {
 
     res.json({ percent, achieved, locked });
   } catch (error) {
-    next(error);
+    if (error.response.data.playerstats.error === 'Requested app has no stats') {
+      res.json({ percent: -1, achieved: [], locked: [] });
+    } else {
+      next(error);
+    }
   }
 });
 
