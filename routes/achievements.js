@@ -13,7 +13,7 @@ router.get('/getAchievements', async (req, res, next) => {
     const globalStats = await axios.get(`https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/?gameid=${gameid}`);
     const gameData = await axios.get(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${process.env.STEAM_KEY}&appid=${gameid}&l=english`);
 
-    const playerAchievements = userStats.data.playerstats.achievements;
+    const playerAchievements = userStats.data.playerstats.achievements || [];
     const globalAchievements = globalStats.data.achievementpercentages.achievements;
     const gameSchema = gameData.data.game.availableGameStats.achievements;
 
@@ -40,11 +40,11 @@ router.get('/getAchievements', async (req, res, next) => {
       }
     });
 
-    const percent = (count / playerAchievements.length * 100).toFixed(2);
+    const percent = playerAchievements.length ? (count / playerAchievements.length * 100).toFixed(2) : -1;
 
     res.json({ percent, achieved, locked });
   } catch (error) {
-    if (error.response.data.playerstats.error === 'Requested app has no stats') {
+    if (error?.response?.data?.playerstats?.error === 'Requested app has no stats') {
       res.json({ percent: -1, achieved: [], locked: [] });
     } else {
       next(error);
