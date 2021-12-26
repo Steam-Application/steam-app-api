@@ -35,13 +35,23 @@ router.get('/game', async (req, res, next) => {
     const news = newsData.data.appnews.newsitems;
 
     res.json({ game, news });
-    
-    // News for App
-    // https://partner.steamgames.com/doc/webapi/ISteamNews
-    // appid, maxlength(0 == all), enddate, count, feeds
   } catch (error) {
     next(error);
   }
 });
+
+/*
+// Limits to 1-2 calls per 2min -- Basically not effective.
+router.get('/gameInventory', async (req, res, next) => {
+  try {
+    const { steamid, appid } = req.query;
+    const { data: inventory } = await axios.get(`https://steamcommunity.com/profiles/${steamid}/inventory/json/${appid}/2`);
+    
+    res.json(inventory);
+  } catch (error) {
+    next(error)
+  }
+});
+*/
 
 module.exports = router;

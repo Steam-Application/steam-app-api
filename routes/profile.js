@@ -16,22 +16,45 @@ router.get('/resolveId', async (req, res, next) => {
 router.get('/userSummary', async (req, res, next) => {
   try {
     const { steamid } = req.query;
-    const { data: userSummary } = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${process.env.STEAM_KEY}&steamids=${steamid}`);
+    const userSummary = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${process.env.STEAM_KEY}&steamids=${steamid}`);
 
-    res.json(userSummary);
+    res.json(userSummary.data.response.players[0]);
   } catch (error) {
     next(error);
   }
 });
 
+router.get('/friends', async(req, res, next) => {
+  try {
+    const { steamid } = req.query;
+    const { data } = await axios.get(`http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${process.env.STEAM_KEY}&steamid=${steamid}&relationship=friend`);
+    const friends = data.friendslist.friends;
+
+    const friendData = await Promise.all(
+      friends.map(async friend => {
+        const friendInfo = await axios.get(`https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${process.env.STEAM_KEY}&steamids=${friend.steamid}`);
+        
+        return { ...friend, ...friendInfo.data.response.players[0] }
+      })
+    );
+
+    res.json(friendData);
+  } catch (error) {
+    next(error);
+  }
+});
 /*
-Owned Games
-https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/
-const { data: Games } = await axios.get(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}&include_appinfo=true`);
-
-User Inventory
-https://partner.steamgames.com/doc/webapi/IInventoryService
-
+// Only Returns GroupId
+router.get('/groups', async (req, res, next) => {
+  try {
+    const { steamid } = req.query;
+    const { data: groups } = await axios.get(`https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?key=${process.env.STEAM_KEY}&steamid=${steamid}`)
+    
+    res.json(groups.response.groups)
+  } catch (error) {
+    next(error);
+  }
+});
 */
 
 module.exports = router;
